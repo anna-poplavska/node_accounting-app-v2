@@ -19,16 +19,17 @@ function createServer() {
 
   app.get('/users/:id', (req, res) => {
     const { id } = req.params;
-    const result = users.find((user) => +user.id === +id);
 
-    if (!result) {
-      res.sendStatus(404);
+    if (isNaN(+id)) {
+      res.sendStatus(400);
 
       return;
     }
 
-    if (isNaN(+id)) {
-      res.sendStatus(400);
+    const result = users.find((user) => +user.id === +id);
+
+    if (!result) {
+      res.sendStatus(404);
 
       return;
     }
@@ -41,6 +42,8 @@ function createServer() {
 
     if (!name) {
       res.sendStatus(400);
+
+      return;
     }
 
     const newUser = {
@@ -63,26 +66,26 @@ function createServer() {
     }
 
     const filteredUsers = users.filter((user) => +user.id !== +id);
-    const statusCode = filteredUsers.length === users.length ? 404 : 204;
 
     users = filteredUsers;
 
-    res.sendStatus(statusCode);
+    res.sendStatus(204);
   });
 
   app.patch('/users/:id', (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
-    const currentUser = users.find((user) => +user.id === +id);
 
-    if (!name || !currentUser) {
-      res.sendStatus(404);
+    if (!name || typeof name !== 'string') {
+      res.sendStatus(400);
 
       return;
     }
 
-    if (typeof name !== 'string') {
-      res.sendStatus(422);
+    const currentUser = users.find((user) => +user.id === +id);
+
+    if (!currentUser) {
+      res.sendStatus(404);
 
       return;
     }
@@ -120,26 +123,26 @@ function createServer() {
   app.post('/expenses', (req, res) => {
     const { userId, spentAt, title, amount, category, note } = req.body;
 
-    if (!title) {
+    if (!title || !userId) {
       res.sendStatus(400);
+
+      return;
     }
 
-    if (!userId) {
-      res.sendStatus(404);
-    }
-
-    if (!title || !users.find((user) => +user.id === +userId)) {
+    if (!users.find((user) => +user.id === +userId)) {
       res.sendStatus(400);
+
+      return;
     }
 
     if (
-      typeof spentAt !== 'string' &&
-      typeof title !== 'string' &&
-      typeof category !== 'string' &&
-      typeof note !== 'string' &&
+      typeof spentAt !== 'string' ||
+      typeof title !== 'string' ||
+      typeof category !== 'string' ||
+      typeof note !== 'string' ||
       typeof amount !== 'number'
     ) {
-      res.sendStatus(422).send('Unprocessable Entity');
+      res.status(422).send('Unprocessable Entity');
     }
 
     const currentExpense = {
