@@ -52,12 +52,18 @@ function createServer() {
     };
 
     users.push(newUser);
-    res.statusCode = 201;
-    res.send(newUser);
+
+    return res.status(201).send(newUser);
   });
 
   app.delete('/users/:id', (req, res) => {
     const { id } = req.params;
+
+    if (isNaN(+id)) {
+      res.sendStatus(400);
+
+      return;
+    }
 
     if (!users.find((user) => +user.id === +id)) {
       res.sendStatus(404);
@@ -75,6 +81,12 @@ function createServer() {
   app.patch('/users/:id', (req, res) => {
     const { id } = req.params;
     const { name } = req.body;
+
+    if (isNaN(+id)) {
+      res.sendStatus(400);
+
+      return;
+    }
 
     if (!name || typeof name !== 'string') {
       res.sendStatus(400);
@@ -142,7 +154,9 @@ function createServer() {
       typeof note !== 'string' ||
       typeof amount !== 'number'
     ) {
-      res.status(422).send('Unprocessable Entity');
+      res.status(400).send('Unprocessable Entity');
+
+      return;
     }
 
     const currentExpense = {
@@ -162,6 +176,13 @@ function createServer() {
 
   app.get('/expenses/:id', (req, res) => {
     const { id } = req.params;
+
+    if (isNaN(+id)) {
+      res.sendStatus(400);
+
+      return;
+    }
+
     const result = expenses.find((expense) => +expense.id === +id);
 
     if (!result) {
@@ -175,6 +196,13 @@ function createServer() {
 
   app.delete('/expenses/:id', (req, res) => {
     const { id } = req.params;
+
+    if (isNaN(+id)) {
+      res.sendStatus(400);
+
+      return;
+    }
+
     const expenseToDelete = expenses.find((expense) => +expense.id === +id);
 
     if (!expenseToDelete) {
